@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/Kevonosdiaz/Go-SideProjects/hello-world/pkg/config"
+	"github.com/Kevonosdiaz/Go-SideProjects/hello-world/pkg/models"
 )
 
 var app *config.AppConfig
@@ -17,8 +18,13 @@ func NewTemplate(a *config.AppConfig) {
 	app = a
 }
 
+// AddDefaultData adds some default data to a TemplateData struct
+func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+	return td
+}
+
 // RenderTemplate renders a template
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
+func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
 	// app.UseCache to determines whether to rebuild templates from disk (allow for checking changes to templates) or use cache
 	var tc map[string]*template.Template
 	if app.UseCache {
@@ -36,7 +42,8 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 
 	// Error checking execution of the template
 	buf := new(bytes.Buffer)
-	err := t.Execute(buf, nil)
+	td = AddDefaultData(td)
+	err := t.Execute(buf, td)
 	if err != nil {
 		log.Println(err)
 	}
