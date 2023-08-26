@@ -2,29 +2,41 @@ package render
 
 import (
 	"bytes"
+	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
-	"text/template"
+
+	"github.com/Kevonosdiaz/Go-SideProjects/hello-world/pkg/config"
 )
+
+var app *config.AppConfig
+
+// NewTemplate sets the config for the template package
+func NewTemplate(a *config.AppConfig) {
+	app = a
+}
 
 // RenderTemplate renders a template
 func RenderTemplate(w http.ResponseWriter, tmpl string) {
-	// Create tmpl cache
-	tc, err := createTemplateCache()
-	if err != nil {
-		log.Fatal(err)
+	// app.UseCache to determines whether to rebuild templates from disk (allow for checking changes to templates) or use cache
+	var tc map[string]*template.Template
+	if app.UseCache {
+		// Get tmpl cache via the app config
+		tc = app.TemplateCache
+	} else {
+		tc, _ = CreateTemplateCache()
 	}
 
 	// Fetch tmpl from cache
 	t, ok := tc[tmpl]
 	if !ok {
-		log.Fatal(err)
+		log.Fatal("Could not get template from cache")
 	}
 
 	// Error checking execution of the template
 	buf := new(bytes.Buffer)
-	err = t.Execute(buf, nil)
+	err := t.Execute(buf, nil)
 	if err != nil {
 		log.Println(err)
 	}
@@ -36,8 +48,8 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 	}
 }
 
-// createTemplateCache generates a template cache
-func createTemplateCache() (map[string]*template.Template, error) {
+// CreateTemplateCache generates a template cache
+func CreateTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
 	// First get all *.page.tmpl files from ./templates	(ending in .html for the time being)
