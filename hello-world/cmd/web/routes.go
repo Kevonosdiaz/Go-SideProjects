@@ -13,18 +13,12 @@ import (
 func routes(app *config.AppConfig) http.Handler {
 	mux := chi.NewRouter()
 
-	// Use middleware from chi pkg
+	// Use middleware from chi pkg and from self-written middleware.go
 	mux.Use(middleware.Recoverer)
+	mux.Use(WriteToConsole)
+	mux.Use(NoSurf)
 
 	mux.Get("/", handlers.Repo.Home)
 	mux.Get("/about", handlers.Repo.About)
 	return mux
 }
-
-// // routes uses the pat external package to process routing
-// func routes(app *config.AppConfig) http.Handler {
-// 	mux := pat.New()
-// 	mux.Get("/", http.HandlerFunc(handlers.Repo.Home))
-// 	mux.Get("/about", http.HandlerFunc(handlers.Repo.About))
-// 	return mux
-// }
